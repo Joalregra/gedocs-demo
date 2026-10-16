@@ -1,0 +1,7 @@
+<svg width="50" height="50" viewBox="-1 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gedocs">
+  <path d="M4 4h14l5 5h21a4 4 0 0 1 4 4v29a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4z" fill="#23395B"/>
+  <path d="M0 20h48v22a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4z" fill="#35517F"/>
+  <circle cx="36" cy="35" r="12.5" fill="#5B3E96"/>
+  <circle cx="36" cy="35" r="9.5" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M31.2 35.4l3.3 3.3 6.3-6.6" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP tests (Pest)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: gd, zip, intl, bcmath, pdo_sqlite, exif, mbstring
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      # The Inertia pages need the Vite manifest, so the frontend is built first.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+
+      - name: Run tests
+        run: php artisan test
+
+      - name: Known vulnerabilities in PHP dependencies
+        run: composer audit
+
+  frontend:
+    name: Frontend tests (Vitest)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:unit
+      - name: Known vulnerabilities in npm dependencies
+        run: npm audit
+
+  traces:
+    name: No institutional traces
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # The identifying terms (real names, domains) are kept in a repository secret so they are
+      # never written in the code. Format: pipe-separated, e.g. "Name One|other-domain.com".
+      - name: Scan for traces
+        env:
+          EXTRA_TERMS: ${{ secrets.TRACE_EXTRA_TERMS }}
+          # The README credits the team by name on purpose (see docs/demo-decisions.md).
+          EXCLUDE_FILES: README.md
+        run: bash buscar-rastros.sh .
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

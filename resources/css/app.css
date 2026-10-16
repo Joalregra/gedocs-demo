@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+@plugin 'daisyui';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme {
+  --font-sans:
+    'Work Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@font-face {
+    font-family: 'Work Sans';
+    src: url('../fonts/work-sans/WorkSans-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+body {
+    font-family: 'Work Sans', sans-serif;
+}
+
+
+/*
+ * Brand tokens. Every color of the interface comes from this theme, so the whole look can be
+ * changed here. Ink is the main color, the seal purple marks the filed/approved state (it is the
+ * stamp of the logo), and the archive teal is the quiet secondary. All text pairs reach WCAG AA.
+ */
+@plugin "daisyui/theme" {
+    name: "GeDocs";
+    default: false;
+    prefersdark: false;
+    color-scheme: "light";
+    --color-base-100: #FFFFFF;
+    --color-base-200: #F2F4F7;
+    --color-base-300: #DDE2EA;
+    --color-base-content: #1B2433;
+    --color-primary: #23395B;
+    --color-primary-content: #FFFFFF;
+    --color-secondary: #2F6F73;
+    --color-secondary-content: #FFFFFF;
+    --color-accent: #5B3E96;
+    --color-accent-content: #FFFFFF;
+    --color-neutral: #1B2433;
+    --color-neutral-content: #F2F4F7;
+    --color-info: #2563A6;
+    --color-info-content: #FFFFFF;
+    --color-success: #2E7D4F;
+    --color-success-content: #FFFFFF;
+    --color-warning: #C98A12;
+    --color-warning-content: #1B2433;
+    --color-error: #B42318;
+    --color-error-content: #FFFFFF;
+    --radius-selector: 1rem;
+    --radius-field: 0.5rem;
+    --radius-box: 1rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+}
+
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/* Respect the visitor's motion preference for the few animated elements of the app. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

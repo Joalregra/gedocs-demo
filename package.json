@@ -1,0 +1,43 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "name": "gedocs-demo",
+    "description": "Frontend of the Gedocs public demo (React + Inertia + Vite).",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite",
+        "test": "vitest",
+        "test:unit": "vitest run"
+    },
+    "devDependencies": {
+        "@headlessui/react": "^2.0.0",
+        "@inertiajs/react": "^2.2.15",
+        "@tailwindcss/forms": "^0.5.3",
+        "@tailwindcss/postcss": "^4.1.16",
+        "@tailwindcss/vite": "^4.1.16",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@vitejs/plugin-react": "^4.2.0",
+        "axios": "^1.13.2",
+        "concurrently": "^9.0.1",
+        "daisyui": "^5.3.10",
+        "jsdom": "^29.0.0",
+        "laravel-vite-plugin": "^2.0.0",
+        "postcss": "^8.4.31",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "tailwindcss": "^4.1.16",
+        "vite": "^7.0.7",
+        "vitest": "^4.1.0"
+    },
+    "dependencies": {
+        "@heroicons/react": "^2.2.0",
+        "@szhsin/react-menu": "^4.5.1",
+        "pdfjs-dist": "~5.5.207",
+        "sonner": "^2.0.7"
+    },
+    "overrides": {
+        "axios": "^1.13.2"
+    }
+}

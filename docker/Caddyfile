@@ -1,0 +1,31 @@
+{
+	# HTTPS certificates are requested automatically for APP_DOMAIN (ports 80 and 443 must be reachable).
+	email {$ACME_EMAIL}
+	frankenphp
+	order php_server before file_server
+}
+
+# APP_DOMAIN=gedocs.example.com in production, APP_DOMAIN=http://localhost to try it locally without TLS.
+{$APP_DOMAIN:http://localhost} {
+	root * /app/public
+	encode zstd br gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# Uploaded files are data, never code: serve them as static files only (no PHP handler)
+	# and sandbox them so a malicious file cannot run script in the app's origin.
+	handle /storage/* {
+		header Content-Security-Policy "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox"
+		file_server
+	}
+
+	handle {
+		php_server
+	}
+}

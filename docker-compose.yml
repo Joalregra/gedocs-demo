@@ -1,0 +1,75 @@
+# Gedocs public demo. Designed for Oracle Cloud "Always Free" (Ampere A1, 4 OCPU / 24 GB at most;
+# it also fits the 1 GB AMD Micro shape with swap, see docs/deploy-oracle.md).
+#
+#   cp .env.production.example .env   # then edit the values
+#   docker compose pull               # image built by CI (see .github/workflows/docker.yml)
+#   docker compose up -d
+#
+# To build the image yourself instead (needs ~2 GB of RAM): docker compose build
+
+services:
+  app:
+    image: ${APP_IMAGE:-ghcr.io/your-github-user/gedocs-demo:latest}
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - storage:/app/storage
+      - caddy_data:/data   # TLS certificates: keep them across restarts to avoid Let's Encrypt rate limits
+      - caddy_config:/config
+
+  # Runs the Laravel scheduler: nightly demo reset (03:00 Bogota) and auto-archive of overdue PQRs.
+  scheduler:
+    image: ${APP_IMAGE:-ghcr.io/your-github-user/gedocs-demo:latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - storage:/app/storage
+
+  # MariaDB is lighter than MySQL 8 (important on small free VMs) and is what the app is tested against.
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:-gedocs}
+      MARIADB_USER: ${DB_USERNAME:-gedocs}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in .env}
+      MARIADB_AUTO_UPGRADE: "1"
+    # Small memory footprint: the demo has a handful of concurrent users.
+    command:
+      - --innodb-buffer-pool-size=${DB_BUFFER_POOL:-128M}
+      - --max-connections=40
+      - --performance-schema=OFF
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    volumes:
+      - dbdata:/var/lib/mysql
+    # The database is only reachable from the other containers: no published port.
+
+volumes:
+  storage:
+  dbdata:
+  caddy_data:
+  caddy_config:

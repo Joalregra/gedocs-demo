@@ -53,7 +53,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
+      # laravel-vite-plugin refuses to start when CI=true because it expects a production build.
+      # Vitest only needs its `@` alias, so the check is bypassed for the tests.
       - run: npm run test:unit
+        env:
+          LARAVEL_BYPASS_ENV_CHECK: "1"
       - name: Known vulnerabilities in npm dependencies
         run: npm audit
 
@@ -61,7 +65,10 @@ jobs:
     name: No institutional traces
     runs-on: ubuntu-24.04
     steps:
+      # Full history: gitleaks scans the commits of the push, not only the last snapshot.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # The identifying terms (real names, domains) are kept in a repository secret so they are
       # never written in the code. Format: pipe-separated, e.g. "Name One|other-domain.com".

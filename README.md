@@ -21,7 +21,7 @@ I was not the author of the whole system; this is what I did:
 - **UI/UX.** I designed the mockups of the main modules in Figma and the base design system.
 - **Frontend.** I built the notifications hub and several other React screens, consuming the REST API.
 - **Deployment.** I deployed the production system with Docker and Dokploy on DigitalOcean.
-- **For this demo.** Configurable identity, neutral role names, fictional seed data and the nightly reset, a security review with the fixes and their tests, the Docker setup for Oracle Cloud's free tier, and CI that also scans for leaked institutional data.
+- **For this demo.** Configurable identity, neutral role names, fictional seed data and the nightly reset, a security review with the fixes and their tests, the Docker setup for a single small cloud instance, and CI that also scans for leaked institutional data.
 
 ## Features
 
@@ -45,7 +45,7 @@ I was not the author of the whole system; this is what I did:
 | Frontend | React 18, Inertia.js 2, Vite 7, Tailwind CSS 4 + daisyUI 5 |
 | Database | MariaDB 11.4 / MySQL (SQLite in memory for tests) |
 | Tests | Pest 3, Vitest 4 + Testing Library |
-| Delivery | Docker (FrankenPHP with Caddy and automatic HTTPS), GitHub Actions, Oracle Cloud Always Free |
+| Delivery | Docker (FrankenPHP with Caddy and automatic HTTPS), GitHub Actions, AWS Lightsail |
 
 ## Architecture
 
@@ -86,6 +86,13 @@ php artisan migrate:fresh --seed                      # loads the fictional data
 npm run build && php artisan serve                    # or: composer dev
 ```
 
+## Deploy
+
+The demo runs as three containers (app with automatic HTTPS, scheduler, MariaDB) from one Docker image built by CI.
+
+- **Recommended:** [AWS Lightsail](docs/deploy-aws-lightsail.md), one 2 GB instance with a fixed monthly price.
+- **Free alternative:** [Oracle Cloud Always Free](docs/deploy-oracle.md). It costs nothing but depends on free capacity being available in your region.
+
 ## Tests
 
 ```bash
@@ -101,7 +108,7 @@ The backend suite covers the business rules per role, the entity isolation, uplo
 - **One place for authorization.** A bug review found that any signed-in user could read another entity's files by guessing IDs. [`EntityAccess`](app/Support/EntityAccess.php) now decides who can read or write what, and tests pin the behavior. See [docs/security-review.md](docs/security-review.md).
 - **Safe public demo.** The reset command refuses to run unless `APP_DEMO=true`; the demo accounts are protected only in demo mode; seeding creates public-password accounts only in demo mode.
 - **Role names in an enum**, mirrored in a JS constants file, instead of strings repeated across 60 places.
-- **Deployable for free.** The image is built in CI for amd64 and arm64 and only pulled on the server, which keeps the 1 to 6 GB free VM comfortable ([docs/deploy-oracle.md](docs/deploy-oracle.md)).
+- **Small, predictable deployment.** The image is built in CI for amd64 and arm64 and only pulled on the server, so a single 2 GB instance runs the app, the scheduler and the database ([docs/deploy-aws-lightsail.md](docs/deploy-aws-lightsail.md)).
 
 ## What I would improve
 

@@ -41,7 +41,7 @@ The stored filing (radicado) number stays a plain sequence (`007`) because sever
 ## Mail, queue and sessions
 
 - `MAIL_MAILER=log`: the demo never sends real email.
-- `QUEUE_CONNECTION=sync` in the demo deployment: nothing is queued, so no worker container is needed (this matters on a small free VM).
+- `QUEUE_CONNECTION=sync` in the demo deployment: nothing is queued, so no worker container is needed (this matters on a small VM).
 - Sessions and cache use the database, which survives container restarts.
 
 ## Tests
@@ -49,3 +49,18 @@ The stored filing (radicado) number stays a plain sequence (`007`) because sever
 - The README credits the original team by name, so the trace scan excludes `README.md` (`EXCLUDE_FILES=README.md`). It is the only file excluded; it contains no institutional name, domain or data.
 - Tests use SQLite in memory for speed. The application itself was exercised against MariaDB 10.4 (local XAMPP) and runs on MariaDB 11.4 in Docker.
 - Pre-existing failures found while setting the baseline were fixed rather than skipped: a folder-name mismatch ("Ventanilla Única" was spelled two ways and only matched on MySQL collations) and a report that did not resolve the folder code of sent documents.
+
+## Hosting: AWS Lightsail instead of Oracle Always Free
+
+**Context.** The first plan was a free Oracle Cloud VM. The account's home region has no free capacity: the Ampere A1 shape fails with "Out of capacity", and the AMD Micro shape is not offered there. The home region of an account cannot be changed, and Always Free resources only exist in it, so there is no free machine available today. Oracle also cut the free Ampere allowance to 2 OCPU and 12 GB in June 2026 and may reclaim idle free instances.
+
+**Decision.** The demo runs on one Amazon Lightsail instance: general purpose, 2 vCPU and 2 GB RAM, Ubuntu 24.04 LTS x86_64, region `us-east-1`, 12 USD per month with a fixed price and a static IP. The unchanged `docker-compose.yml` (app, scheduler, MariaDB) is enough; the guide is [deploy-aws-lightsail.md](deploy-aws-lightsail.md), with a 2 GB swap file and `DB_BUFFER_POOL` at its default of 128M. The Oracle guide stays as a free alternative for whoever does get capacity.
+
+**Alternatives considered.** Hetzner (cheaper, but only in Germany and Finland, so higher latency from the Americas), DigitalOcean, Contabo and a Google Cloud e2-micro. Lightsail won on predictable pricing, closer regions and the value of AWS experience for the author's profile.
+
+**Consequences.**
+
+- A fixed monthly cost and a single server for the whole demo. A stopped instance is still billed, so shutting it down means deleting the instance and releasing the static IP.
+- A later portfolio backend can share the same instance behind one shared Caddy that owns ports 80 and 443 (described in the guide, not implemented).
+- Gedocs keeps MariaDB in its own container: it is a MySQL-family application, so a PostgreSQL service would not replace it.
+- The image is still published for `amd64` and `arm64`: Lightsail uses `amd64`, and `arm64` keeps the Oracle Ampere alternative working.

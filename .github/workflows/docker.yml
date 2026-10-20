@@ -1,7 +1,7 @@
 name: Docker image
 
-# Builds the multi-architecture image (amd64 + arm64 for Oracle Ampere A1) and publishes it to GitHub
-# Container Registry. The free Oracle VM then only pulls it, instead of compiling everything itself.
+# Builds the multi-architecture image (amd64 for AWS Lightsail, arm64 for the Oracle Ampere alternative) and
+# publishes it to GitHub Container Registry. The server then only pulls it, instead of compiling everything itself.
 
 on:
   push:

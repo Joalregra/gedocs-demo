@@ -1,5 +1,5 @@
-# Gedocs public demo. Designed for Oracle Cloud "Always Free" (Ampere A1, 4 OCPU / 24 GB at most;
-# it also fits the 1 GB AMD Micro shape with swap, see docs/deploy-oracle.md).
+# Gedocs public demo. Runs on one small cloud instance (AWS Lightsail, 2 GB, see docs/deploy-aws-lightsail.md);
+# docs/deploy-oracle.md describes a free Oracle Cloud alternative (it also fits a 1 GB shape with swap).
 #
 #   cp .env.production.example .env   # then edit the values
 #   docker compose pull               # image built by CI (see .github/workflows/docker.yml)

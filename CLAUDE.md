@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Gedocs: a document-archive + PQRSD (petitions, complaints, claims, suggestions) system. This repository is the **public portfolio demo** of a system built by a team for a public institution: it must contain **no trace of that institution** and only fictional data. Laravel 12 backend, Inertia.js 2 + React 18 frontend (Vite 7, Tailwind 4 + daisyUI 5). The UI and many identifiers are in Spanish. Before finishing any change run `bash buscar-rastros.sh .` (see "Trace scan"); it must end in `OK`.
 
-Documentation lives in `docs/`: `demo-decisions.md` (why things differ from a production codebase), `security-review.md`, `deploy-oracle.md`.
+Documentation lives in `docs/`: `demo-decisions.md` (why things differ from a production codebase), `security-review.md`, `deploy-aws-lightsail.md` (the recommended deployment) and `deploy-oracle.md` (free alternative).
 
 ## Commands
 
@@ -16,7 +16,7 @@ Documentation lives in `docs/`: `demo-decisions.md` (why things differ from a pr
 - PHP style: `./vendor/bin/pint`. Dependency audits: `composer audit` and `npm audit` (both are clean; keep them that way).
 - Load the fictional data: set `APP_DEMO=true`, then `php artisan migrate:fresh --seed`. Restore it later with `php artisan demo:reset` (refuses to run unless `APP_DEMO=true`).
 - Trace scan: `EXTRA_TERMS="<terms>" bash buscar-rastros.sh .` (writes `reporte-rastros.txt`, exit code 1 while traces remain). In CI the terms come from the `TRACE_EXTRA_TERMS` secret. Words the script flags (the institution's name and acronym, its role and unit vocabulary, its tax-id label) must not appear anywhere in code, tests, docs or README.
-- Docker (production image, Oracle Cloud Always Free): `docker compose pull && docker compose up -d`; see `docs/deploy-oracle.md`.
+- Docker (production image, AWS Lightsail 2 GB): `docker compose pull && docker compose up -d`; see `docs/deploy-aws-lightsail.md` (Oracle Always Free alternative: `docs/deploy-oracle.md`).
 
 ### Local environment notes (this machine)
 
@@ -40,7 +40,7 @@ PHP 8.4 and Node 22 are installed in user space under `~/.local` (no root); they
 
 **Frontend** (`resources/js`, alias `@/` → `resources/js`): `app.jsx` resolves pages from `Pages/**/*.jsx` and wraps everything in context providers (`context/`) that own the axios fetching per domain; layouts in `Layouts/`, features in `Components/<Feature>/`. Colors come only from the daisyUI theme tokens in `resources/css/app.css` (brand: ink `primary`, seal-purple `accent`, teal `secondary`); do not add hard-coded brand colors. Error pages (403/404/419/500/503) are `Pages/Error.jsx`, rendered by `withExceptions` in `bootstrap/app.php` outside local/testing.
 
-**Deployment.** `Dockerfile` (multi-stage, FrankenPHP/Caddy, non-root, amd64 + arm64), `docker-compose.yml` (app, scheduler, MariaDB), `docker/` (Caddyfile, php.ini, entrypoint), `.github/workflows/` (CI and image build). The demo uses `QUEUE_CONNECTION=sync`, so there is no worker container.
+**Deployment.** `Dockerfile` (multi-stage, FrankenPHP/Caddy, non-root, amd64 + arm64), `docker-compose.yml` (app, scheduler, MariaDB), `docker/` (Caddyfile, php.ini, entrypoint), `.github/workflows/` (CI and image build). The demo uses `QUEUE_CONNECTION=sync`, so there is no worker container. The target is one AWS Lightsail instance (2 GB RAM, `us-east-1`, Ubuntu 24.04 x86_64), guide `docs/deploy-aws-lightsail.md`; memory is tight, so keep the 2 GB swap file and the `DB_BUFFER_POOL` default of 128M, and measure with `docker stats` before adding any container.
 
 ## Testing notes
 

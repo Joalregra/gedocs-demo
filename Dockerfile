@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 #
-# Multi-stage image for the public demo. Works on amd64 and arm64 (Oracle Cloud Ampere A1).
-# Build it in CI and pull it on the server: compiling on a small free VM is slow and memory hungry.
+# Multi-stage image for the public demo. Works on amd64 (AWS Lightsail) and arm64 (Oracle Ampere alternative).
+# Build it in CI and pull it on the server: compiling on a small instance is slow and memory hungry.
 
 # ---- 1. Frontend assets (Vite) ----------------------------------------------------------------------
 FROM node:22-alpine AS assets

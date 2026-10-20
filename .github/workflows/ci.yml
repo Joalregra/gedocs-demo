@@ -65,7 +65,7 @@ jobs:
     name: No institutional traces
     runs-on: ubuntu-24.04
     steps:
-      # Full history: gitleaks scans the commits of the push, not only the last snapshot.
+      # Full history: gitleaks scans every commit of the repository, not only the last snapshot.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -79,7 +79,16 @@ jobs:
           EXCLUDE_FILES: README.md
         run: bash buscar-rastros.sh .
 
-      - name: Scan for secrets
-        uses: gitleaks/gitleaks-action@v2
+      # The official binary (pinned version and checksum) scans the whole history. The packaged action
+      # scans only the commit range of the push, which breaks on the first push, on force pushes and on
+      # new branches because the range start does not exist in the clone.
+      - name: Scan for secrets (full history)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "8.30.1"
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          cd "$RUNNER_TEMP"
+          curl -sSfL -o gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tgz" | sha256sum -c -
+          tar -xzf gitleaks.tgz gitleaks
+          "$RUNNER_TEMP/gitleaks" git "$GITHUB_WORKSPACE" --redact --no-banner -v

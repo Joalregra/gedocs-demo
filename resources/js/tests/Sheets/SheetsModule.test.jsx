@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SheetsSettingsSection from '@/Components/Sheets/SheetsSettingsSection';
+import ViewSheets from '@/Components/Sheets/ViewSheets';
 import { SheetsContext } from '@/context/SheetsContext/SheetsContext';
 import api from '@/lib/axios';
 
@@ -182,5 +183,28 @@ describe('SheetsModule Component Tests', () => {
         await waitFor(() => {
             expect(mockDeleteSheet).toHaveBeenCalledWith(2);
         });
+    });
+
+    it('leaves no timer behind when the view panel is removed before its modal opens', () => {
+        // Choosing Editar or Borrar opens the next modal 100 ms later. If the panel goes away first,
+        // that timer must not stay alive: it would run after the page, or a test environment, is gone.
+        vi.useFakeTimers();
+        try {
+            const { unmount } = render(
+                <SheetsContext.Provider value={{ deleteSheet: mockDeleteSheet }}>
+                    <ViewSheets sheet={mockSheets[0]} />
+                </SheetsContext.Provider>
+            );
+
+            fireEvent.click(screen.getByText('Editar'));
+            fireEvent.click(screen.getByText('Borrar'));
+            expect(vi.getTimerCount()).toBe(2);
+
+            unmount();
+
+            expect(vi.getTimerCount()).toBe(0);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 });

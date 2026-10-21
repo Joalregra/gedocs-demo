@@ -6,6 +6,9 @@
 #   docker compose up -d
 #
 # To build the image yourself instead (needs ~2 GB of RAM): docker compose build
+#
+# To run it behind a shared reverse proxy on the same instance, add docker-compose.proxy.yml
+# (see "Behind the shared proxy" in docs/deploy-aws-lightsail.md).
 
 services:
   app:

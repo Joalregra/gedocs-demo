@@ -2,9 +2,11 @@ import React, { useState, useEffect, useContext } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import api from "@/lib/axios";
 import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
+import useTimeout from "@/Hooks/useTimeout";
 
 export default function EditSheets({ sheet }) {
     const { fetchSheets } = useContext(SheetsContext);
+    const later = useTimeout();
 
     const [formData, setFormData] = useState({
         numeroEntidad: "",
@@ -42,7 +44,7 @@ export default function EditSheets({ sheet }) {
 
             if (!res.data?.success) {
                 setErrorMessage("No se pudo actualizar la entidad");
-                setTimeout(() => setErrorMessage(""), 3000);
+                later(() => setErrorMessage(""), 3000);
                 return;
             }
 
@@ -50,14 +52,14 @@ export default function EditSheets({ sheet }) {
             setSuccessMessage("Entidad actualizada correctamente");
             setErrorMessage("");
 
-            setTimeout(() => {
+            later(() => {
                 setSuccessMessage("");
                 closeModal();
             }, 1200);
         } catch (error) {
             console.error(error);
             setErrorMessage("Error al actualizar la entidad");
-            setTimeout(() => setErrorMessage(""), 3000);
+            later(() => setErrorMessage(""), 3000);
         }
     };
 

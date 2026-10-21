@@ -3,19 +3,21 @@ import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 import { ChevronRightIcon, EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import ViewSheets from "./ViewSheets";
 import DeleteSheets from "./DeleteSheets";
+import useTimeout from "@/Hooks/useTimeout";
 
 export default function SheetsTable({ sheets = [] }) {
     const { deleteSheet } = useContext(SheetsContext);
 
     const [selectedSheet, setSelectedSheet] = useState(null);
     const [sheetToDelete, setSheetToDelete] = useState(null);
+    const later = useTimeout();
 
     const isEmpty = !sheets || sheets.length === 0;
 
     const openEditModal = (item) => {
         setSelectedSheet(item);
-        setTimeout(() => {
-            document.getElementById("my_modal_3").showModal();
+        later(() => {
+            document.getElementById("my_modal_3")?.showModal();
         }, 10);
     };
 

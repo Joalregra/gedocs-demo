@@ -2,14 +2,16 @@ import React, { useState, useContext } from "react";
 import EditSheets from "@/Components/Sheets/EditSheets.jsx";
 import DeleteSheets from "./DeleteSheets";
 import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
+import useTimeout from "@/Hooks/useTimeout";
 
 export default function ViewSheets({ sheet }) {
     const { deleteSheet } = useContext(SheetsContext);
     const [sheetToDelete, setSheetToDelete] = useState(null);
+    const later = useTimeout();
 
     const openEditModal = () => {
         document.getElementById("my_modal_3")?.close();
-        setTimeout(() => {
+        later(() => {
             document.getElementById("my_modal_4")?.showModal();
         }, 100);
     };
@@ -17,7 +19,7 @@ export default function ViewSheets({ sheet }) {
     const openDeleteModal = () => {
         document.getElementById("my_modal_3")?.close();
         setSheetToDelete(sheet);
-        setTimeout(() => {
+        later(() => {
             document.getElementById("delete_modal")?.showModal();
         }, 100);
     };

@@ -232,6 +232,39 @@ On the first start the app runs the migrations and loads the fictional data (abo
 - [ ] The demo loads over HTTPS and the scheduler lists both tasks.
 - [ ] The server `.env` is stored safely outside Git.
 
-## Running a second app on the same instance (not implemented)
+## Behind the shared proxy
 
-The `app` container publishes ports 80 and 443 because its Caddy terminates TLS. To host another service on the same instance (for example a separate API), the plan is to put a single reverse proxy in front: it owns 80/443 and the certificates, Gedocs serves plain HTTP inside a shared Docker network (`APP_DOMAIN=:80`, no published ports), and the proxy routes each hostname to its container. The app already trusts the proxy headers (`trustProxies`), so links and secure cookies keep working. This is a design note only; the current `docker-compose.yml` is the single-app setup described above.
+The `app` container publishes ports 80 and 443 because its Caddy terminates TLS. To host another service on the same instance (for example the portfolio API), a single reverse proxy sits in front of both: it owns ports 80 and 443 and the certificates, Gedocs serves plain HTTP on a shared Docker network, and the proxy routes each host name to its container. The proxy lives in the portfolio repository (`developer-portfolio`, `deploy/proxy/`), and its runbook is `docs/deploy.md` there.
+
+`docker-compose.proxy.yml` is the variant that makes Gedocs run that way. The base `docker-compose.yml` is not changed, so the single-app setup above keeps working.
+
+What changes for Gedocs:
+
+- `app` publishes no port and joins the external Docker network `web` with the alias `gedocs-app`. The network is created once, with a fixed subnet, by the portfolio runbook.
+- `APP_DOMAIN=:80` in the server `.env` makes the Caddy inside the container listen on port 80 only and request no certificate. It keeps adding its security headers and the sandbox for `/storage`.
+- `COMPOSE_FILE=docker-compose.yml:docker-compose.proxy.yml` in the same `.env` makes `docker compose pull` and `docker compose up -d` use both files without `-f`.
+- `APP_URL` stays `https://` with the public host name and `SESSION_SECURE_COOKIE` stays `true`. Laravel sees HTTPS through `X-Forwarded-Proto`, because the app already trusts the proxy headers (`trustProxies`). That is acceptable because the container can be reached only from the `web` network and its own internal network.
+- `ACME_EMAIL` must stay defined even though it is no longer used: the internal `Caddyfile` reads it.
+- The `caddy_data` volume is no longer used. Keep it until the change is confirmed, so going back finds the old certificate.
+
+To switch (the demo is unavailable for one to three minutes, so do it at night):
+
+```bash
+docker compose version              # 2.24 or later is needed for !reset
+git pull --ff-only
+cp .env .env.before-proxy
+sed -i 's/^APP_DOMAIN=.*/APP_DOMAIN=:80/' .env
+grep -q '^COMPOSE_FILE=' .env || echo 'COMPOSE_FILE=docker-compose.yml:docker-compose.proxy.yml' >> .env
+docker compose up -d                # Gedocs frees ports 80 and 443 here
+# then start the shared proxy from the portfolio repository: cd deploy/proxy && docker compose up -d
+```
+
+To go back, stop the shared proxy and restore the old `.env`:
+
+```bash
+(cd <path-to-portfolio>/deploy/proxy && docker compose down)
+cp .env.before-proxy .env
+docker compose up -d
+```
+
+The demo then runs as before, with its own Caddy and the certificate saved in `caddy_data`. A `502` from the proxy means the `app` container is not on the `web` network or is not running: check `docker compose ps` and `docker network inspect web`.

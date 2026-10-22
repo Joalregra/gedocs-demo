@@ -21,7 +21,8 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader --ignore-platform-reqs
 
 # ---- 3. Runtime: FrankenPHP (Caddy + PHP) -----------------------------------------------------------
-FROM dunglas/frankenphp:1-php8.4-bookworm AS runtime
+# Base image pinned to PHP 8.4.27 (security release of 21 October 2026). To update, change the tag and rebuild.
+FROM dunglas/frankenphp:1-php8.4.27-bookworm AS runtime
 
 RUN install-php-extensions pdo_mysql gd zip intl bcmath opcache pcntl exif
 

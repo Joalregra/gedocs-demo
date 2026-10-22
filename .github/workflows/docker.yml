@@ -34,6 +34,8 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
+          # Always fetch the base image again so a stale cached layer can never keep an old PHP version.
+          pull: true
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |

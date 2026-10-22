@@ -18,7 +18,7 @@
         "fakerphp/faker": "^1.23",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
-        "laravel/sanctum": "*",
+        "laravel/sanctum": "^4.3",
         "laravel/tinker": "^2.10.1",
         "laraveles/spanish": "^1.5",
         "maatwebsite/excel": "^3.1",

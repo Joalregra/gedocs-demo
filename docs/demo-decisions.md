@@ -61,6 +61,6 @@ The stored filing (radicado) number stays a plain sequence (`007`) because sever
 **Consequences.**
 
 - A fixed monthly cost and a single server for the whole demo. A stopped instance is still billed, so shutting it down means deleting the instance and releasing the static IP.
-- A later portfolio backend can share the same instance behind one shared Caddy that owns ports 80 and 443 (described in the guide, not implemented).
+- A later portfolio backend can share the same instance behind one shared Caddy that owns ports 80 and 443 (implemented as `docker-compose.proxy.yml` and described in the guide).
 - Gedocs keeps MariaDB in its own container: it is a MySQL-family application, so a PostgreSQL service would not replace it.
-- The image is still published for `amd64` and `arm64`: Lightsail uses `amd64`, and `arm64` keeps the Oracle Ampere alternative working.
+- Every push to `main` publishes the `amd64` image, which is what Lightsail runs. `arm64` (for the Oracle Ampere alternative) is built only on demand by starting the Docker workflow by hand: its extensions compile under QEMU emulation, which is slow and made the build hang, so it does not run on every push.

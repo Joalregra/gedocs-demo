@@ -43,7 +43,7 @@ I was not the author of the whole system; this is what I did:
 |---|---|
 | Backend | PHP 8.2+ (8.4 in Docker), Laravel 12, Sanctum, spatie/laravel-permission, dompdf, maatwebsite/excel |
 | Frontend | React 18, Inertia.js 2, Vite 7, Tailwind CSS 4 + daisyUI 5 |
-| Database | MariaDB 11.4 / MySQL (SQLite in memory for tests) |
+| Database | MariaDB 11.4 through Laravel's `mysql` driver (the driver name covers MariaDB too; MySQL 8 should work but is not tested). SQLite in memory for tests |
 | Tests | Pest 3, Vitest 4 + Testing Library |
 | Delivery | Docker (FrankenPHP with Caddy and automatic HTTPS), GitHub Actions, AWS Lightsail |
 
@@ -55,10 +55,11 @@ flowchart LR
     subgraph Docker host
       C --> L[Laravel 12]
       S[Scheduler] --> L
-      L --> D[(MariaDB)]
+      L --> D[(MariaDB 11.4)]
       L --> F[(Uploaded files volume)]
     end
     S -. nightly .-> R[demo:reset]
+    S -. every 10 min .-> A[pqrs:auto-archive-expired]
 ```
 
 Laravel serves the Inertia pages and a JSON API under `/api`; the browser talks to both with the same session cookie (Sanctum stateful mode). The identity of the organization (name, logo, PDF footer, filing number format) comes from `config/institution.php`. Authorization by entity is centralized in `App\Support\EntityAccess`. More detail in [docs/demo-decisions.md](docs/demo-decisions.md).
@@ -77,7 +78,7 @@ docker compose up -d                                                    # open h
 
 ### Without Docker (Linux, macOS or WSL)
 
-Requires PHP 8.2+, Composer, Node 22 and MariaDB or MySQL.
+Requires PHP 8.2+, Composer, Node 22 and MariaDB or MySQL (for example the one that ships with XAMPP). Keep `DB_CONNECTION=mysql` in `.env`: it is the name of Laravel's driver for both servers.
 
 ```bash
 composer install && npm ci
@@ -100,7 +101,7 @@ php artisan test        # Pest: about 140 backend tests (SQLite in memory)
 npm run test:unit       # Vitest: about 130 interface tests
 ```
 
-The backend suite covers the business rules per role, the entity isolation, upload safety, demo mode and the seeded story. The frontend suite renders each screen per role with the API mocked. GitHub Actions runs both on every push, together with `composer audit`, `npm audit`, a scan for institutional traces and a secrets scan ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+The backend suite covers the business rules per role, the entity isolation, upload safety, demo mode and the seeded story. The frontend suite renders each screen per role with the API mocked. GitHub Actions runs both on every push to `main` and on every pull request, together with `composer audit`, `npm audit`, a scan for institutional traces and a secrets scan ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 
 ## Technical decisions
 
@@ -108,7 +109,7 @@ The backend suite covers the business rules per role, the entity isolation, uplo
 - **One place for authorization.** A bug review found that any signed-in user could read another entity's files by guessing IDs. [`EntityAccess`](app/Support/EntityAccess.php) now decides who can read or write what, and tests pin the behavior. See [docs/security-review.md](docs/security-review.md).
 - **Safe public demo.** The reset command refuses to run unless `APP_DEMO=true`; the demo accounts are protected only in demo mode; seeding creates public-password accounts only in demo mode.
 - **Role names in an enum**, mirrored in a JS constants file, instead of strings repeated across 60 places.
-- **Small, predictable deployment.** The image is built in CI for amd64 and arm64 and only pulled on the server, so a single 2 GB instance runs the app, the scheduler and the database ([docs/deploy-aws-lightsail.md](docs/deploy-aws-lightsail.md)).
+- **Small, predictable deployment.** The image is built in CI (amd64, with arm64 on demand) and only pulled on the server, so a single 2 GB instance runs the app, the scheduler and the database ([docs/deploy-aws-lightsail.md](docs/deploy-aws-lightsail.md)).
 
 ## What I would improve
 
@@ -117,6 +118,7 @@ The backend suite covers the business rules per role, the entity isolation, uplo
 - Paginate the inbox and add end-to-end tests with Playwright on top of the unit and feature tests.
 - Rename the `Sheet_number` model and table to match the interface term "entity".
 - Fix accents in a few older interface strings.
+- Trust only the real proxy address in `trustProxies` (today it trusts every address, so a visitor can forge `X-Forwarded-For` and sidestep the per-IP rate limits; see [docs/security-review.md](docs/security-review.md)).
 
 ## Credits
 
@@ -128,7 +130,7 @@ Built by the original team of 9 people. The retention-schedule structure and the
 | Juan Manuel Velez | Backend | [Jumavxp](https://github.com/Jumavxp) |
 | Luisa Coy | Backend | [luisajcoy](https://github.com/luisajcoy) |
 | Juan Camilo Sanchez Fernandez | Frontend and backend | [Camilo5282](https://github.com/Camilo5282) |
-| Sebastian Catellanos | Frontend | [Sebastian18131](https://github.com/Sebastian18131) |
+| Sebastian Castellanos | Frontend | [Sebastian18131](https://github.com/Sebastian18131) |
 | Juan Manuel Rios Ricaurte | Frontend | [JuanManuelRios327](https://github.com/JuanManuelRios327) |
 | Julio Alexis Hoyos | Full stack | [Julioalexis434](https://github.com/Julioalexis434) |
 | Genesis Elizabeth Navas Lara | Documentation | [GenesisNavas](https://github.com/GenesisNavas) |

@@ -44,7 +44,8 @@ services:
     volumes:
       - storage:/app/storage
 
-  # MariaDB is lighter than MySQL 8 (important on small free VMs) and is what the app is tested against.
+  # MariaDB is lighter than MySQL 8 (important on small free VMs). The app was run against MariaDB 10.4 locally and
+  # against this image; the automated tests use SQLite in memory. Laravel reaches it through its `mysql` driver.
   db:
     image: mariadb:11.4
     restart: unless-stopped

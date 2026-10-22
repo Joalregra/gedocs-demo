@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // The app is only reachable through the reverse proxy (Caddy) in the Docker deployment.
+        // Known risk: every address is trusted, so a visitor can forge X-Forwarded-For (see docs/security-review.md).
         $middleware->trustProxies(at: '*');
 
         $middleware->api(prepend: [

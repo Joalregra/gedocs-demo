@@ -135,7 +135,7 @@ Log out and back in, then check that `docker ps` works without `sudo`.
 
 ## 8. Get the image
 
-The GitHub Actions workflow [`docker.yml`](../.github/workflows/docker.yml) builds `linux/amd64` and `linux/arm64` and publishes `ghcr.io/<your-user>/gedocs-demo`. Confirm that the latest run on `main` succeeded and that the package appears under your GitHub profile's *Packages*.
+The GitHub Actions workflow [`docker.yml`](../.github/workflows/docker.yml) builds `linux/amd64` on every push to `main` and publishes `ghcr.io/<your-user>/gedocs-demo`. That is the architecture Lightsail runs, so nothing else is needed. Confirm that the latest run on `main` succeeded and that the package appears under your GitHub profile's *Packages*.
 
 GHCR packages are private by default:
 

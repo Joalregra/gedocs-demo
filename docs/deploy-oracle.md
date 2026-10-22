@@ -92,7 +92,7 @@ sudo usermod -aG docker $USER    # log out and back in afterwards
 
 ## 5. Get the image
 
-The GitHub Actions workflow [`docker.yml`](../.github/workflows/docker.yml) builds `linux/arm64` and `linux/amd64` and publishes the image to `ghcr.io/<your-user>/gedocs-demo`. Push to `main` once and wait for it to finish.
+The GitHub Actions workflow [`docker.yml`](../.github/workflows/docker.yml) publishes the image to `ghcr.io/<your-user>/gedocs-demo`. A normal push to `main` builds only `linux/amd64`, which is enough for the AMD Micro shape. **For Ampere (arm64) start the workflow by hand** (Actions > Docker image > Run workflow) and choose `linux/amd64,linux/arm64`; that build is slow because the PHP extensions are compiled under emulation (allow up to two hours). The next push to `main` replaces `latest` with the amd64-only image again, so pull the arm64 image right after that run finishes.
 
 GHCR packages are private by default:
 
@@ -159,7 +159,7 @@ Check the scheduler: `docker compose exec scheduler php artisan schedule:list` s
   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
   ```
 - Set `DB_BUFFER_POOL=48M` in `.env` (the variable is not in the template: add the line).
-- Do not build the image there; always `docker compose pull` the one built by CI. The Micro shape is `amd64`, which the workflow also publishes.
+- Do not build the image there; always `docker compose pull` the one built by CI. The Micro shape is `amd64`, which every push to `main` publishes.
 - Expect slower first loads and about 700 MB of used memory.
 
 ## Troubleshooting
@@ -171,7 +171,7 @@ Check the scheduler: `docker compose exec scheduler php artisan schedule:list` s
 | Certificate error or the site only works on `http://` | DNS does not point to the VM yet, or port 80 is blocked so Let's Encrypt cannot validate. Check `docker compose logs app`. |
 | Cloudflare 525/526 errors or a redirect loop | The Cloudflare proxy (orange cloud) is on. Set the record to DNS only. |
 | `Out of capacity for shape ...` when creating the VM | Oracle has no free capacity there. Try another availability domain, try again later, or use [the AWS Lightsail guide](deploy-aws-lightsail.md). |
-| `no matching manifest for linux/arm64` on pull | The image was not built for arm64. Re-run the Docker workflow. |
+| `no matching manifest for linux/arm64` on pull | `latest` is the amd64-only image of the last push. Run the Docker workflow by hand with `linux/amd64,linux/arm64` and pull again when it finishes. |
 | `denied` or `unauthorized` when pulling | The GHCR package is private: make it public (public repositories only) or run `docker login ghcr.io`. |
 | "No application encryption key has been specified" | `APP_KEY` is empty in `.env`; generate it (step 6) and run `docker compose up -d` again. |
 | Login works but you are logged out immediately | `SESSION_SECURE_COOKIE=true` while visiting over plain HTTP, or `SANCTUM_STATEFUL_DOMAINS` does not match your domain. |

@@ -13,7 +13,7 @@ The original code had **no entity-level authorization in the file explorer** and
 | Critical | 2 | Fixed |
 | High | 5 | Fixed |
 | Medium | 5 | Fixed |
-| Low | 3 | Fixed or accepted (explained) |
+| Low | 3 | Fixed, or a known risk (explained) |
 
 ## Critical
 
@@ -42,7 +42,7 @@ Fix: length limit and a regex that forbids separators and reserved characters ([
 `GET /api/qrcode` was unauthenticated and wrote a PNG to a path built from request input. It was not used by the frontend. Fix: removed.
 
 **S-06. Known vulnerabilities in dependencies.**
-`composer audit` reported 60 advisories in 16 packages (including a critical one in `phpspreadsheet` and high ones in `guzzle`, `league/commonmark` and `symfony/*`); `npm audit` reported 17 (2 critical, including `vite` and `axios`). Fix: updated inside the existing version ranges (the PHP platform is pinned to 8.2 so the lock stays installable on 8.2 to 8.4) and pinned `pdfjs-dist` to 5.5.x because 5.6.83 and later 5.x versions have an arbitrary-script advisory when opening a crafted PDF. A deprecated, unused package (`@inertiajs/inertia` 0.11) was removed. Both audits now report zero, and CI runs both on every push.
+`composer audit` reported 60 advisories in 16 packages (including a critical one in `phpspreadsheet` and high ones in `guzzle`, `league/commonmark` and `symfony/*`); `npm audit` reported 17 (2 critical, including `vite` and `axios`). Fix: updated inside the existing version ranges (the PHP platform is pinned to 8.2 so the lock stays installable on 8.2 to 8.4) and pinned `pdfjs-dist` to 5.5.x because 5.6.83 and later 5.x versions have an arbitrary-script advisory when opening a crafted PDF. A deprecated, unused package (`@inertiajs/inertia` 0.11) was removed. Both audits now report zero, and CI runs both on every push to `main` and on every pull request.
 
 **S-07. CORS with credentials and a wildcard origin.**
 [config/cors.php:22](../config/cors.php) allowed every origin while `supports_credentials` was true. Fix: origins come from `CORS_ALLOWED_ORIGINS`, defaulting to the app URL.
@@ -67,7 +67,7 @@ Fix: length limit and a regex that forbids separators and reserved characters ([
 
 **S-15. Broken redirects.** Three Breeze controllers redirected to a `dashboard` route that does not exist. They now go to the inbox.
 
-**Accepted:** `trustProxies(at: '*')` ([bootstrap/app.php](../bootstrap/app.php)). It is safe here because the container is only reachable through the Caddy reverse proxy of the same compose file; if the app is ever exposed directly, restrict it to the proxy address.
+**Known risk:** `trustProxies(at: '*')` ([bootstrap/app.php](../bootstrap/app.php)). In the normal deployment Caddy runs inside the same container as the app (FrankenPHP), so it is not a separate proxy and the app trusts the forwarding headers it receives, including those a visitor sends. A forged `X-Forwarded-For` therefore changes the IP the `throttle` limits see, which lets someone sidestep the per-IP rate limits. HTTPS detection and secure cookies are not affected. Behind the shared proxy (see the AWS guide) the risk is smaller, because that proxy rewrites the header. The fix is to trust only the proxy address through an environment variable; it is left as is on purpose because the demo holds no real data, and it is listed in the README under "What I would improve".
 
 ## Things that were already right
 

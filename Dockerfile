@@ -1,13 +1,10 @@
 # syntax=docker/dockerfile:1
 #
-# Multi-stage image for the public demo. Production runs on amd64 (AWS Lightsail); arm64 (Oracle Ampere
-# alternative) is built only on demand. Build it in CI and pull it on the server: compiling on a small
-# instance is slow and memory hungry.
+# Multi-stage image for the public demo, built for amd64 (what AWS Lightsail runs). Build it in CI and pull
+# it on the server: compiling on a small instance is slow and memory hungry.
 
 # ---- 1. Frontend assets (Vite) ----------------------------------------------------------------------
-# The compiled JS and CSS are identical for every architecture, so this stage always runs on the build
-# machine's own architecture. Under QEMU emulation the native tools of Vite are very slow and can hang.
-FROM --platform=$BUILDPLATFORM node:22-alpine AS assets
+FROM node:22-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
@@ -17,8 +14,7 @@ COPY public ./public
 RUN npm run build
 
 # ---- 2. PHP dependencies (production only) ----------------------------------------------------------
-# vendor/ is plain PHP and does not depend on the architecture either, so it also runs natively.
-FROM --platform=$BUILDPLATFORM composer:2 AS vendor
+FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
 # Platform extensions (gd, intl, zip...) exist in the runtime image, not in this stage.

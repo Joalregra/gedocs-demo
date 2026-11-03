@@ -2,7 +2,7 @@
 
 A web application to keep an organization's documents organized by a records-retention schedule and to handle citizen requests (PQRSD: petitions, complaints, claims, suggestions) from filing to answer.
 
-**Live demo:** coming soon (deployment in progress) · **Demo users:** `admin@demo.test` / `demo1234` (one-click buttons for every role on the login page)
+**Live demo:** <https://gedocs.johanrendon.com> (running on AWS Lightsail) · **Demo users:** `admin@demo.test` / `demo1234` (one-click buttons for every role on the login page)
 All data is fictional and resets every night at 3:00 a.m. (Colombia). The interface is in Spanish because it follows Colombian records-management rules (Ley 594 de 2000).
 
 ![Gedocs login with one-click demo access](docs/screenshots/login.png)
@@ -13,6 +13,19 @@ Gedocs is a team project (9 people) built as the final project of a Software Ana
 
 This repository is a **public demo** of that system. The institution's name, branding and data were removed with permission, all data is fictional, and the identity of the organization is now configurable (`config/institution.php`) instead of being written in the code.
 
+**Project objective.** Automate the upload, organization, classification and retrieval of documents, keeping traceability of who received, assigned and answered each citizen request.
+
+## Original project
+
+This demo is derived from the team's repository. The code and the wiki of that project are published here:
+
+| Repository | What it is |
+|---|---|
+| [Joalregra/GeDocs](https://github.com/Joalregra/GeDocs) | My fork of the original code, with a [wiki](https://github.com/Joalregra/GeDocs/wiki) rewritten from the source: architecture, data model, roles, API reference, user stories and known issues |
+| [LydiaSierra/GeDocs](https://github.com/LydiaSierra/GeDocs) | The team's original repository (upstream) |
+
+The fork and its wiki describe the **original** system, with its own vocabulary and defects. This demo differs from it in the ways listed in [docs/demo-decisions.md](docs/demo-decisions.md) (neutral role names, entities, configurable identity, fictional data) and fixes the access-control and upload problems found in [docs/security-review.md](docs/security-review.md).
+
 ## My role
 
 I was not the author of the whole system; this is what I did:
@@ -20,13 +33,14 @@ I was not the author of the whole system; this is what I did:
 - **Full-stack QA.** I led the testing strategy: Pest/PHPUnit for the backend business rules and Vitest with React Testing Library for the interface (see [Tests](#tests)).
 - **UI/UX.** I designed the mockups of the main modules in Figma and the base design system.
 - **Frontend.** I built the notifications hub and several other React screens, consuming the REST API.
+- **Documentation.** I wrote the [wiki of the fork](https://github.com/Joalregra/GeDocs/wiki) from the source code (see [Original project](#original-project)).
 - **Deployment.** I deployed the production system with Docker and Dokploy on DigitalOcean.
 - **For this demo.** Configurable identity, neutral role names, fictional seed data and the nightly reset, a security review with the fixes and their tests, the Docker setup for a single small cloud instance, and CI that also scans for leaked institutional data.
 
 ## Features
 
 - **Document archive.** Entities (organizations) with a yearly folder tree built from the retention schedule; upload, preview, rename, move, trash and restore; ZIP download; hierarchical classification codes and a SHA-256 hash per file.
-- **PQRSD.** Public submission form with attachments, filing (radicado) numbers, due dates with automatic archiving of overdue requests, assignment to dependencies, replies with PDF letters, and an expiring one-time link so a citizen can answer without an account.
+- **PQRSD.** Public submission form with attachments, filing (radicado) numbers, due dates of 10, 15 or 30 days with a warning color and automatic archiving of overdue requests, assignment to dependencies, replies with PDF letters, and an expiring one-time link so a citizen can answer without an account.
 - **PDF generator.** Letters, circulars, minutes, reports and certificates with a per-user logo, signature and footer.
 - **Reports.** Excel registers of received and sent communications.
 - **Roles with data isolation.** Admin, Supervisor, Auxiliar and Dependencia; every user only sees the entities they belong to.
@@ -91,8 +105,7 @@ npm run build && php artisan serve                    # or: composer dev
 
 The demo runs as three containers (app with automatic HTTPS, scheduler, MariaDB) from one Docker image built by CI.
 
-- **Recommended:** [AWS Lightsail](docs/deploy-aws-lightsail.md), one 2 GB instance with a fixed monthly price.
-- **Free alternative:** [Oracle Cloud Always Free](docs/deploy-oracle.md). It costs nothing but depends on free capacity being available in your region.
+[AWS Lightsail](docs/deploy-aws-lightsail.md): one 2 GB instance with a fixed monthly price.
 
 ## Tests
 
@@ -103,13 +116,20 @@ npm run test:unit       # Vitest: about 130 interface tests
 
 The backend suite covers the business rules per role, the entity isolation, upload safety, demo mode and the seeded story. The frontend suite renders each screen per role with the API mocked. GitHub Actions runs both on every push to `main` and on every pull request, together with `composer audit`, `npm audit`, a scan for institutional traces and a secrets scan ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 
+## Documentation
+
+- [docs/demo-decisions.md](docs/demo-decisions.md): why this repository differs from a production codebase.
+- [docs/security-review.md](docs/security-review.md): findings, fixes and the tests that pin them.
+- [docs/glossary.md](docs/glossary.md): domain terms (entity, radicado, single window, TRD) and demo terms.
+- [docs/deploy-aws-lightsail.md](docs/deploy-aws-lightsail.md): step-by-step deployment.
+
 ## Technical decisions
 
 - **Identity as configuration, not find-and-replace.** Everything that names an organization lives in one config file and is injected into Blade, PDFs, Excel and the React app.
 - **One place for authorization.** A bug review found that any signed-in user could read another entity's files by guessing IDs. [`EntityAccess`](app/Support/EntityAccess.php) now decides who can read or write what, and tests pin the behavior. See [docs/security-review.md](docs/security-review.md).
 - **Safe public demo.** The reset command refuses to run unless `APP_DEMO=true`; the demo accounts are protected only in demo mode; seeding creates public-password accounts only in demo mode.
 - **Role names in an enum**, mirrored in a JS constants file, instead of strings repeated across 60 places.
-- **Small, predictable deployment.** The image is built in CI (amd64, with arm64 on demand) and only pulled on the server, so a single 2 GB instance runs the app, the scheduler and the database ([docs/deploy-aws-lightsail.md](docs/deploy-aws-lightsail.md)).
+- **Small, predictable deployment.** The image is built in CI for amd64 and only pulled on the server, so a single 2 GB instance runs the app, the scheduler and the database ([docs/deploy-aws-lightsail.md](docs/deploy-aws-lightsail.md)).
 
 ## What I would improve
 
@@ -123,6 +143,8 @@ The backend suite covers the business rules per role, the entity isolation, uplo
 ## Credits
 
 Built by the original team of 9 people. The retention-schedule structure and the PQRSD flow come from the original project.
+
+See [Original project](#original-project) for the repositories.
 
 | Name | Role in the original project | GitHub |
 |---|---|---|

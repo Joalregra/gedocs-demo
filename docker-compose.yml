@@ -1,5 +1,4 @@
-# Gedocs public demo. Runs on one small cloud instance (AWS Lightsail, 2 GB, see docs/deploy-aws-lightsail.md);
-# docs/deploy-oracle.md describes a free Oracle Cloud alternative (it also fits a 1 GB shape with swap).
+# Gedocs public demo. Runs on one small cloud instance (AWS Lightsail, 2 GB, see docs/deploy-aws-lightsail.md).
 #
 #   cp .env.production.example .env   # then edit the values
 #   docker compose pull               # image built by CI (see .github/workflows/docker.yml)

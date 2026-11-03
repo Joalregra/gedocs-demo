@@ -2,8 +2,6 @@
 
 The public demo runs on **one** Amazon Lightsail instance with Docker Compose: the app container (FrankenPHP with its built-in Caddy, which gets a free Let's Encrypt certificate), the scheduler container and MariaDB. No other AWS service is needed: no managed database, no load balancer, no Lightsail container service.
 
-This is the recommended way to run the demo. For a zero-cost alternative that depends on free capacity being available, see [Deploy on Oracle Cloud (Always Free)](deploy-oracle.md).
-
 ## At a glance
 
 | Item | Choice |

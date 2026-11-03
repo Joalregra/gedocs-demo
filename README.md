@@ -2,7 +2,7 @@
 
 A web application to keep an organization's documents organized by a records-retention schedule and to handle citizen requests (PQRSD: petitions, complaints, claims, suggestions) from filing to answer.
 
-**Live demo:** coming soon (deployment in progress) · **Demo users:** `admin@demo.test` / `demo1234` (one-click buttons for every role on the login page)
+**Live demo:** <https://gedocs.johanrendon.com> (running on AWS Lightsail) · **Demo users:** `admin@demo.test` / `demo1234` (one-click buttons for every role on the login page)
 All data is fictional and resets every night at 3:00 a.m. (Colombia). The interface is in Spanish because it follows Colombian records-management rules (Ley 594 de 2000).
 
 ![Gedocs login with one-click demo access](docs/screenshots/login.png)
